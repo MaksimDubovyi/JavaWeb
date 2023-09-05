@@ -1,7 +1,11 @@
 
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%
-  String contextPath = request.getContextPath() ;  // база сайту - домашнє посилання
+  StringBuffer url = request.getRequestURL();
+  String url2 = url.toString();
+  String contextPath  = url2.replaceAll("WEB-INF/_layout.jsp", "");
+
+  String url3 = request.getContextPath() ;  // база сайту - домашнє посилання
   String pageName =           // Вилучаємо значення атрибуту (закладеного у сервлеті)
           (String)            // оскільки значення Object, необхідне пряме перетворення
                   request             // об'єкт request доступний у всіх JSP незалежно від сервлетів
@@ -17,20 +21,33 @@
   <!--Import materialize.css-->
   <link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"  media="screen,projection"/>
 
+  <link type="text/css" rel="stylesheet" href="<%=contextPath%>/css.css"/>
+
   <!--Let browser know website is optimized for mobile-->
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 </head>
 <body>
-
 <jsp:include page="nav.jsp">
   <jsp:param name="_pageName" value="<%=pageName%>" />
   <jsp:param name="_contextPath" value="<%=contextPath%>" />
 </jsp:include>
 
+<div style="display: flex">
+  <div class="layoutLeft" >
+    <img class="layoutImg" src="img/java.png"/>
+    <p class="layoutTxtJava" src="img/java.png" class="flow-text">JAVA</p>
 
-<div class="container">
-  <jsp:include page="<%=pageName%>"/>
+
+    <jsp:include page="leftNav.jsp">
+      <jsp:param name="_pageName" value="<%=pageName%>" />
+    </jsp:include>
+  </div>
+
+  <div class="container">
+    <jsp:include page="<%=pageName%>"/>
+  </div>
 </div>
+
 <!--JavaScript at end of body for optimized loading-->
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 <p>

@@ -9,25 +9,23 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-//@WebServlet( "/jsp" )  // заміна декларацій у web.xml
 @Singleton
-public class JspServlet extends HttpServlet {
-    private final Logger logger;
+public class HashServlet  extends HttpServlet {
     private final HashService hashService;
     @Inject
-    public JspServlet(Logger logger, HashService hashService)
-    {
-        this.logger=logger;
+    public HashServlet(HashService hashService) {
         this.hashService = hashService;
     }
+
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        logger.log(Level.INFO, "Info from JspServlet"+ hashService.hash("123"));
-        //logger.log(Level.WARNING, "Info from JspServlet");
-        req.setAttribute("pageName", "jsp" ) ;
+
+        req.setAttribute("hash", hashService.hash("123") ) ;
+        req.setAttribute("pageName", "hash" ) ;
         req.getRequestDispatcher( "WEB-INF/_layout.jsp" ).forward( req, resp ) ;
     }
 }
+
+
+

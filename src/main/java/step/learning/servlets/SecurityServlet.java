@@ -9,12 +9,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-//@WebServlet( "/url" )  // заміна декларацій у web.xml
 @Singleton
-public class UrlServlet extends HttpServlet {
+public class SecurityServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        req.setAttribute("pageName", "url" ) ;
+        req.setAttribute("pageName", "security" ) ;
         req.getRequestDispatcher( "WEB-INF/_layout.jsp" ).forward( req, resp ) ;
     }
 }

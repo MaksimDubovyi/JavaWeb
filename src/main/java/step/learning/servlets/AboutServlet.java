@@ -1,4 +1,6 @@
 package step.learning.servlets;
+        import com.google.inject.Singleton;
+
         import javax.servlet.ServletException;
         import javax.servlet.annotation.WebServlet;
         import javax.servlet.http.HttpServlet;
@@ -6,7 +8,7 @@ package step.learning.servlets;
         import javax.servlet.http.HttpServletResponse;
         import java.io.IOException;
 
-@WebServlet( "/about" )  // заміна декларацій у web.xml
+@Singleton
 public class AboutServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
