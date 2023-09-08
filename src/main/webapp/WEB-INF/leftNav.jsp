@@ -22,4 +22,5 @@
 
         <li style="margin-top: 10%">
             <a  <%if("hash.jsp".equals(request.getParameter("_pageName"))) { %> class="leftLiActive" <% }else{%>class="leftLi"<%}%> href="hash">Hash</a></li>
+
     </ul>
