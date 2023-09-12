@@ -2,7 +2,6 @@ package step.learning.servlets;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
-import step.learning.db.dto.User;
 import step.learning.services.HashService;
 import step.learning.services.db.DbProvider;
 
@@ -31,26 +30,26 @@ public class HomeServlet extends HttpServlet {   // назва класу - до
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
 
-        Connection connection= dbProvider.getConnection();
-        User user=new User("","Maksim","Dubovyi","max@gmail.com","096-744-5666",hashService.hash("1111"),32);
-        String sql =  "INSERT INTO javaWeb_users(`id`, `firstName`, `lastName`,`email`,`phone`, `age`, `avatar`,`PasswordHash`) VALUES( ?, ?, ?, ?,?,?,?,? )";
-        try(PreparedStatement prep = connection.prepareStatement(sql)  ) {
-
-            prep.setString(1, user.getId()==null ? UUID.randomUUID().toString() : user.getId().toString());
-            prep.setString(2, user.getFirstName());
-            prep.setString(3, user.getLastName());
-            prep.setString(4, user.getEmail());
-            prep.setString(5, user.getPhone());
-            prep.setInt(   6,user.getAge());
-            prep.setString(7, user.getAvatar());
-            prep.setString(8, user.getPasswordHash());
-
-
-        }
-        catch( SQLException ex ) {
-            System.err.println( ex.getMessage() ) ;
-
-        }
+//        Connection connection= dbProvider.getConnection();
+//        User user=new User("","Maksim","Dubovyi","max@gmail.com","096-744-5666",hashService.hash("1111"),32);
+//        String sql =  "INSERT INTO javaWeb_users(`id`, `firstName`, `lastName`,`email`,`phone`, `age`, `avatar`,`PasswordHash`) VALUES( ?, ?, ?, ?,?,?,?,? )";
+//        try(PreparedStatement prep = connection.prepareStatement(sql)  ) {
+//
+//            prep.setString(1, user.getId()==null ? UUID.randomUUID().toString() : user.getId().toString());
+//            prep.setString(2, user.getFirstName());
+//            prep.setString(3, user.getLastName());
+//            prep.setString(4, user.getEmail());
+//            prep.setString(5, user.getPhone());
+//            prep.setInt(   6,user.getAge());
+//            prep.setString(7, user.getAvatar());
+//            prep.setString(8, user.getPasswordHash());
+//
+//
+//        }
+//        catch( SQLException ex ) {
+//            System.err.println( ex.getMessage() ) ;
+//
+//        }
 
     }
 

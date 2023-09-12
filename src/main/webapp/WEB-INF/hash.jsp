@@ -21,7 +21,7 @@
                         <label for="input_text">Введіть рядок:</label>
                     </div>
                     <div class="col s2">
-                        <button class="btn waves-effect waves-light blue-grey darken-4 lighten-3 offset-s1" type="submit">
+                        <button style="color: white" class="btn waves-effect waves-light blue-grey darken-4 lighten-3 offset-s1" type="submit">
                             <i class="material-icons right">send</i>
                         </button>
 
@@ -33,7 +33,7 @@
                         <label for="textarea2">Результат:</label>
                     </div>
                     <div class="col s2">
-                        <button <%if(result==""){%>disabled<%}%> class="btn waves-effect waves-light blue-grey darken-4 lighten-2 offset-s1" type="submit" name="mode" value="download">
+                        <button style="color: white" <%if(result==""){%>disabled<%}%> class="btn waves-effect waves-light blue-grey darken-4 lighten-2 offset-s1" type="submit" name="mode" value="download">
                             <i class="material-icons right">file_download</i>
                         </button>
                     </div>
