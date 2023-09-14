@@ -19,7 +19,7 @@
             <li <%if("security.jsp".equals(request.getParameter("_pageName"))) { %> class="myActive" <% }%>>
                 <a href="security">Security</a></li>
             <!-- Modal Trigger -->
-            <li><a class="waves-effect waves-light btn modal-trigger leftLi" href="#auth-modal">
+            <li><a style="color: white" class="waves-effect waves-light btn modal-trigger leftLi" href="#auth-modal">
                 <span class="material-icons">login</span>
             </a></li>
         </ul>

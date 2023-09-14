@@ -20,7 +20,7 @@
     };
     String[] culture = {"uk-UA", "en-US", "en-CA", "fr-CA", "fr-FR", "de-DE", "it-IT","es-ES","en-GB","ja-JP"};
 %>
-<div class="container" style="margin-top: 10%; width: 50%">
+<div class="container" style="margin-top: 10%; width: 80%">
   <div class="card-panel grey lighten-5">
     <div class="row">
 <h2>Реєстрація нового користувача:</h2>
