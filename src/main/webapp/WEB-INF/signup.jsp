@@ -56,10 +56,11 @@
                 <div class="file-field input-field col s6">
                     <div class="btn">
                         <span>File</span>
-                        <input type="file">
+                        <input type="file" id="reg-avatar" name="reg-avatar">
                     </div>
                     <div class="file-path-wrapper">
-                        <input class="file-path validate" type="text" id="reg-avatar" name="reg-avatar" placeholder="Виберіть аватар">
+<%--                        <input type="file" id="reg-avatar" name="reg-avatar" accept="image/*" multiple>--%>
+                        <input class="file-path validate" type="text"  placeholder="Виберіть аватар">
                     </div>
                 </div>
             </div>
@@ -156,13 +157,18 @@
             alert( "Пароль занадто короткий або не введений" ) ;
             return ;
         }
-        formData.append( passwordInput.name, passwordInput.value ) ;
 
+
+
+        console.log(avatarInput.files[0])
+
+        formData.append( passwordInput.name, passwordInput.value ) ;
         formData.append( nameInput.name, nameInput.value ) ;
+
         formData.append( lastnameInput.name, lastnameInput.value ) ;
         formData.append( phoneInput.name, phoneInput.value ) ;
         formData.append( birthdateInput.name, birthdateInput.value ) ;
-
+        formData.append(avatarInput.name, avatarInput.files[0]);
         formData.append( cultureInput.name, cultureInput.value ) ;
         formData.append( genderInput.name, genderInput.value ) ;
 
