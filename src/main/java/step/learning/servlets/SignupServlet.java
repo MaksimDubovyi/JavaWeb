@@ -6,13 +6,18 @@ import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.apache.commons.fileupload.FileItem;
+import step.learning.services.dao.UserDao;
+import step.learning.services.db.dto.User;
 import step.learning.services.formparse.FormParseResult;
 import step.learning.services.formparse.FormParseService;
+import step.learning.services.kdf.KdfService;
 
 import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -20,18 +25,25 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @Singleton
 public class SignupServlet extends HttpServlet {
 
     private final String uploadPath;
     private  final FormParseService formParseService;
-
+    private final UserDao userDao;
+   private final Logger logger;
+    private final KdfService kdfService;
     @Inject
-    public SignupServlet(@Named("UploadDir") String uploadDir,FormParseService formParseService) {
+    public SignupServlet(@Named("UploadDir") String uploadDir, FormParseService formParseService, UserDao userDao, Logger logger, KdfService kdfService) {
         this.uploadPath = uploadDir;
 
         this.formParseService = formParseService;
+        this.userDao = userDao;
+        this.logger = logger;
+        this.kdfService = kdfService;
     }
 
     @Override
@@ -40,21 +52,26 @@ public class SignupServlet extends HttpServlet {
         req.getRequestDispatcher( "WEB-INF/_layout.jsp" ).forward( req, resp ) ;
     }
 
-
-    // upload settings
-
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        SignupFormData formData ;
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+
+        ResponseData responseData;
         try {
-            formData = new SignupFormData( req ) ;
+            String login = req.getParameter("auth-login");
+            String password = req.getParameter("auth-password");
+
+            User user = userDao.authenticate(login,password);
+            if(user!=null)
+            { responseData= new ResponseData(200,"Ok");}
+            else {
+                responseData= new ResponseData(401,"Unauthorized");
+            }
+
 
         }
         catch( Exception ex ) {
-            resp.getWriter().print(
-                    "There was an error: " + ex.getMessage()
-            ) ;
-            formData = null ;
+            logger.log( Level.SEVERE, ex.getMessage() ) ;
+            responseData = new ResponseData(500, "There was an error. Look at server's logs");
         }
 
         GsonBuilder builder = new GsonBuilder();
@@ -62,9 +79,69 @@ public class SignupServlet extends HttpServlet {
         Gson gson = builder.create();
 
         resp.getWriter().print(
-                gson.toJson( formData )
+                gson.toJson( responseData )
+        ) ;
+
+    }
+
+// upload settings
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        SignupFormData formData ;
+        ResponseData responseData;
+        try {
+            formData = new SignupFormData( req ) ;
+            User user = formData.toUserDto();
+            userDao.add(user);
+            responseData= new ResponseData(200,"Ok");
+
+        }
+        catch( Exception ex ) {
+            logger.log( Level.SEVERE, ex.getMessage() ) ;
+            responseData = new ResponseData(500, "There was an error. Look at server's logs");
+        }
+
+        GsonBuilder builder = new GsonBuilder();
+        builder.setPrettyPrinting();
+        Gson gson = builder.create();
+
+        resp.getWriter().print(
+                gson.toJson( responseData )
         ) ;
     }
+
+    class ResponseData
+    {
+        public ResponseData() {
+
+        }
+        public ResponseData(int statusCode, String massage) {
+            this.statusCode = statusCode;
+            this.message = massage;
+        }
+
+        int statusCode;
+    String message;
+
+        public int getStatusCode() {
+            return statusCode;
+        }
+
+        public void setStatusCode(int statusCode) {
+            this.statusCode = statusCode;
+        }
+
+        public String getMassage() {
+            return message;
+        }
+
+        public void setMassage(String massage) {
+            this.message = massage;
+        }
+    }
+
+
 
     class SignupFormData {
         private String name;
@@ -103,6 +180,44 @@ public class SignupServlet extends HttpServlet {
                 setAvatar((String) null);
             }
         }
+
+        public User toUserDto() {
+            User user = new User() ;
+            user.setAvatar( this.getAvatar() ) ;
+            user.setFirstName( this.getName() ) ;
+            user.setLastName( this.getLastname() ) ;
+            user.setLogin( this.getLogin() ) ;
+            user.setGender( this.getGender() ) ;
+            user.setCulture( this.getCulture() ) ;
+            user.setBirthdate( this.getBirthdate() ) ;
+            user.setPhone( this.getPhone() ) ;
+            if(user.getPhone()!=null)
+            {//генеруємо еод підтвердження
+                String phoneCode= UUID.randomUUID().toString().substring(0, 6);
+                //зберігаємо в обєкті
+                user.setPhoneConfirmCode(phoneCode);
+                //та надсилаємо (TODO)
+            }
+            user.setEmail( this.getEmail() ) ;
+            if(user.getEmail()!=null)
+            {//генеруємо еод підтвердження
+                String emailCode= UUID.randomUUID().toString().substring(0, 6);
+                //зберігаємо в обєкті
+                user.setEmailConfirmCode(emailCode);
+                //та надсилаємо (TODO)
+            }
+            user.setId( UUID.randomUUID() ) ;
+
+            user.setDeleteDT( null ) ;
+            user.setBanDT( null ) ;
+            user.setRegisterDT( new Date() ) ;
+            user.setLastLoginDT( null ) ;
+
+            user.setSalt( user.getId().toString().substring(0, 8) ) ;
+            user.setPasswordDk( kdfService.getDerivedKey( this.getPassword(), user.getSalt() ) ) ;
+            user.setRoleId(null);
+            return user ;
+        }
         public String getAvatar() {
             return avatar;
         }
@@ -116,7 +231,7 @@ public class SignupServlet extends HttpServlet {
 
             if(CheckExtension(extension))  // перевіряємо на допустимі розширення
             {
-                 String fileName =  org.apache.commons.io.FilenameUtils.getBaseName(new File(avatar.getName()).getName());  //відокремлюємо ім'я файлу
+                 String  fileName = UUID.randomUUID().toString().substring(0, 8)+extension; // - генеруємо випадкове ім'я
                  String newFileName=CheckIfNameExists(fileName,extension);      // - перевіряємо, чи випадково не потрапили у наявне ім'я, перегенеруємо
                  String filePath = getServletContext().getRealPath("") + uploadPath+ File.separator +newFileName;
 

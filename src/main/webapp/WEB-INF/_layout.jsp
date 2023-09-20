@@ -74,19 +74,66 @@
         <label for="auth-password">Пароль</label>
       </div>
     </div>
+    <p id="result"  style="color: red"></p>
   </div>
   <div class="modal-footer">
     <a href="<%= contextPath %>signup" class="modal-close waves-effect waves-green btn-flat teal lighten-3">Реєстрація</a>
     <a href="#!" class="modal-close waves-effect waves-green btn-flat indigo lighten-3">Забув пароль</a>
-    <a href="#!" class="modal-close waves-effect waves-green btn-flat green lighten-3">Вхід</a>
+    <a href="#!" class="waves-effect waves-green btn-flat green lighten-3" id="submit">Вхід</a>
+
   </div>
 </div>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+
     const elems = document.querySelectorAll('.modal');
     M.Modal.init(elems,
     {opacity:0.5});
+    const signupButton = document.getElementById('submit');
+
+    if( signupButton ) {
+      signupButton.addEventListener( 'click', loginClick ) ;
+    }
+    else {
+      console.error( 'signupButton not found' )
+    }
   });
+
+  function loginClick() {
+
+    const loginInput = document.getElementById('auth-login');
+    if( ! loginInput ) throw "input id='auth-login' not found" ;
+    const passwordInput = document.getElementById('auth-password');
+    if( ! passwordInput ) throw "input id='auth-password' not found" ;
+
+    if( loginInput.value.trim().length < 2 ) {
+      alert( "Логін занадто короткий або не введений!" ) ;
+      return ;
+    }
+
+    if( passwordInput.value.trim().length < 2 ) {
+      alert( "Пароль занадто короткий або не введений" ) ;
+      return ;
+    }
+
+
+    const url = `/JavaWeb/signup?auth-login=${loginInput.value}&auth-password=${passwordInput.value}`;
+
+    fetch(url, { method: 'PUT' })
+            .then(response => {
+              return response.json(); // Парсимо відповідь як JSON
+            })
+            .then(data => {
+              // data буде об'єктом, який містить поля statusCode та message
+              console.log(data.statusCode);
+              console.log(data.message);
+              const result = document.getElementById('result');
+              result.textContent=data.message;
+            })
+            .catch(error => {
+              console.error('Fetch Error:', error);
+            });
+  }
 </script>
   </body>
 </html>

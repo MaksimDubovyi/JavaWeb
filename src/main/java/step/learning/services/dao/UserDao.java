@@ -7,10 +7,7 @@ import step.learning.services.db.DbProvider;
 import step.learning.services.db.dto.User;
 import step.learning.services.kdf.KdfService;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -80,35 +77,79 @@ public class UserDao {
 
     }
 
-    public void add(User user)
+    public void add( User user )
     {
-        Connection connection= dbProvider.getConnection();
-
-        String sql =  "INSERT INTO "+dbPrefix+"Users(`id`, `firstName`, `lastName`,`email`," +
-                " `phone`,`birthdate`,`avatar`,`login`,`salt`,`passwordDk`,`registerDT`,`culture`,`gender`)" +
-                " VALUES( ?, ?, ?, ?,?,?,?,?,?, ?, ?, ?,? )";
-        try(PreparedStatement prep = connection.prepareStatement(sql)  ) {
+        String sql = "INSERT INTO " + dbPrefix + "Users(`id`, `firstName`, `lastName`,`email`," +
+                " `phone`,`birthdate`,`avatar`,`login`,`salt`,`passwordDk`,`registerDT`,`culture`,`gender`, " +
+                "`emailConfirmCode`, `phoneConfirmCode`)" +
+                " VALUES( ?, ?, ?, ?,?,?,?,?,?, ?, ?, ?,?,?,? )";
+        try( PreparedStatement prep = dbProvider.getConnection().prepareStatement(sql) ) {
 
             prep.setString(1, user.getId()==null ? UUID.randomUUID().toString() : user.getId().toString());
             prep.setString(2, user.getFirstName());
             prep.setString(3, user.getLastName());
             prep.setString(4, user.getEmail());
             prep.setString(5, user.getPhone());
-            prep.setDate  (6, new java.sql.Date(user.getBirthdate().getTime()));
+            prep.setDate (6, new java.sql.Date(user.getBirthdate().getTime()));
             prep.setString(7, user.getAvatar());
             prep.setString(8, user.getLogin());
             prep.setString(9, user.getSalt());
             prep.setString(10, user.getPasswordDk());
-            prep.setDate  (11, new java.sql.Date(user.getRegisterDT().getTime()));
+            prep.setTimestamp (11, new java.sql.Timestamp(user.getRegisterDT().getTime()));
             prep.setString(12, user.getCulture());
             prep.setString(13, user.getGender());
+            prep.setString(14, user.getEmailConfirmCode());
+            prep.setString(15, user.getPhoneConfirmCode());
 
             prep.executeUpdate();
         }
         catch( SQLException ex ) {
-            System.err.println( ex.getMessage() ) ;
-
+            logger.log(
+                    Level.SEVERE,
+                    ex.getMessage() + "--" + sql
+            ) ;
+            throw new RuntimeException(ex);
         }
     }
 
+    /**
+     * Authentication of user
+     * @param login
+     * @param password
+     * @return UserDTO or null
+     */
+    public  User authenticate(String login, String password)
+    {//1. цукаємо користувача по логіну
+        //2, вилучаємо сіль та пк
+        //3. Генеруємо похідний ключ перевіряємо рівність збереженому пк
+
+
+        String sql = "SELECT u.* FROM " + dbPrefix + "Users u WHERE u.login = ?";;
+        try(PreparedStatement prep = dbProvider.getConnection().prepareStatement(sql))
+        {
+            prep.setString(1,login);
+            ResultSet res = prep.executeQuery();
+            if(res.next())//є дані
+            {
+                User user= new User(res);
+
+              if(  kdfService
+                        .getDerivedKey(password, user.getSalt())
+                        .equals(user.getPasswordDk()))
+              {
+                  return  user;
+              }
+
+            }//else -до кінця і   return  null;
+        }
+        catch( SQLException ex ) {
+            logger.log(
+                    Level.SEVERE,
+                    ex.getMessage() + "--" + sql
+            ) ;
+            throw new RuntimeException(ex);
+        }
+        return  null;
+
+    }
 }

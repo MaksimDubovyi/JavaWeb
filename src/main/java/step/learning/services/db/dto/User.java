@@ -64,9 +64,15 @@ public class User {
         setRegisterDT( resultSet.getDate( "registerDT" ) ) ;
         setBanDT( resultSet.getDate( "banDT" ) ) ;
         setDeleteDT( resultSet.getDate( "deleteDT" ) ) ;
-        setRoleId( UUID.fromString( resultSet.getString("roleId") ) ) ;
+
         setCulture( resultSet.getString( "culture" ) ) ;
         setGender( resultSet.getString( "gender" ) ) ;
+         String role = resultSet.getString("roleId");
+        if(role!=null)
+        {
+            setRoleId( UUID.fromString( resultSet.getString("roleId") ) ) ;
+        }
+
     }
 
     // endregion
