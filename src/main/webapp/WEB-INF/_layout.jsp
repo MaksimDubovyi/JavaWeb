@@ -97,38 +97,87 @@
     else {
       console.error( 'signupButton not found' )
     }
+
+    window.addEventListener('hashchange', frontRouter);
+    frontRouter();
   });
+  function  frontRouter(){
+
+    console.log(location.hash)
+    switch (location.hash)
+    {
+      case '#front':
+        loadFrontRage();
+        break;
+      default:
+    }
+
+
+  }
+
+  function loadFrontRage()
+  {
+    const  token = window.localStorage.getItem('token');
+    const  headers = (token==null)?{}:{
+      'Authorization':`Bearer ${token}`
+    }
+    fetch('<%=url3%>/front',{
+      method:'GET',
+      headers:headers
+    }).then(r=>r.text())
+            .then(t=>{console.log(t)})
+  }
 
   function loginClick() {
-
     const loginInput = document.getElementById('auth-login');
     if( ! loginInput ) throw "input id='auth-login' not found" ;
     const passwordInput = document.getElementById('auth-password');
     if( ! passwordInput ) throw "input id='auth-password' not found" ;
 
-    if( loginInput.value.trim().length < 2 ) {
+    const authLogin = loginInput.value.trim() ;
+    if( authLogin.length < 2 ) {
       alert( "Логін занадто короткий або не введений!" ) ;
       return ;
     }
-
-    if( passwordInput.value.trim().length < 2 ) {
+    const authPassword = passwordInput.value ;
+    if( authPassword.length < 2 ) {
       alert( "Пароль занадто короткий або не введений" ) ;
       return ;
     }
-
-
-    const url = `/JavaWeb/signup?auth-login=${loginInput.value}&auth-password=${passwordInput.value}`;
-
-    fetch(url, { method: 'PUT' })
+    // const url = `<%= contextPath %>/signup?auth-login=${authLogin}&auth-password=${authPassword}`;
+    const url = `<%=url3%>/signup` ;
+    // let formData = new FormData();
+    // formData.append('auth-login',authLogin );
+    // formData.append('auth-password',authPassword );
+    // fetch(url, { method: 'PUT', body: formData })
+    fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        'auth-login': authLogin,
+        'auth-password': authPassword
+      })
+    })
             .then(response => {
               return response.json(); // Парсимо відповідь як JSON
             })
             .then(data => {
-              // data буде об'єктом, який містить поля statusCode та message
-              console.log(data.statusCode);
-              console.log(data.message);
-              const result = document.getElementById('result');
-              result.textContent=data.message;
+// data буде об'єктом, який містить поля statusCode та message
+              console.log(data);
+              if(data.statusCode==200)
+              {
+                window.localStorage.setItem('token',data.message);
+                var instance = M.Modal.getInstance(document.getElementById("auth-modal"));
+                instance.close();
+              }
+              else
+              {  const result = document.getElementById('result');
+                result.textContent=data.message;}
+
+
+
             })
             .catch(error => {
               console.error('Fetch Error:', error);

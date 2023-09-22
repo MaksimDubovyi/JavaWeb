@@ -2,22 +2,24 @@ package step.learning.servlets;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.name.Named;
 import org.apache.commons.fileupload.FileItem;
 import step.learning.services.dao.UserDao;
+import step.learning.services.dao.WebTokenDao;
 import step.learning.services.db.dto.User;
+import step.learning.services.db.dto.WebToken;
 import step.learning.services.formparse.FormParseResult;
 import step.learning.services.formparse.FormParseService;
 import step.learning.services.kdf.KdfService;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -34,14 +36,16 @@ public class SignupServlet extends HttpServlet {
     private final String uploadPath;
     private  final FormParseService formParseService;
     private final UserDao userDao;
+    private final WebTokenDao webTokenDao;
    private final Logger logger;
     private final KdfService kdfService;
     @Inject
-    public SignupServlet(@Named("UploadDir") String uploadDir, FormParseService formParseService, UserDao userDao, Logger logger, KdfService kdfService) {
+    public SignupServlet(@Named("UploadDir") String uploadDir, FormParseService formParseService, UserDao userDao, WebTokenDao webTokenDao, Logger logger, KdfService kdfService) {
         this.uploadPath = uploadDir;
 
         this.formParseService = formParseService;
         this.userDao = userDao;
+        this.webTokenDao = webTokenDao;
         this.logger = logger;
         this.kdfService = kdfService;
     }
@@ -54,20 +58,35 @@ public class SignupServlet extends HttpServlet {
 
     @Override
     protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-
-        ResponseData responseData;
+        // Автентифікація - перевірка логіну/паролю
+        ResponseData responseData ;
         try {
-            String login = req.getParameter("auth-login");
-            String password = req.getParameter("auth-password");
+        /* // При передачі URL-параметрів
+        String login = req.getParameter( "auth-login" ) ;
+        String password = req.getParameter( "auth-password" ) ;
+         */
+        /*  // При передачі form-data (див. зміни у MixedFormParseService)
+        FormParseResult parseResult = formParseService.parse( req ) ;
+        String login = parseResult.getFields().get("auth-login");
+        String password = parseResult.getFields().get("auth-password");
+         */
+            // При передачі JSON
+            JsonObject json = JsonParser.parseReader(req.getReader()).getAsJsonObject();
+            String login = json.get("auth-login").getAsString() ;
+            String password = json.get("auth-password").getAsString() ;
 
-            User user = userDao.authenticate(login,password);
-            if(user!=null)
-            { responseData= new ResponseData(200,"Ok");}
-            else {
-                responseData= new ResponseData(401,"Unauthorized");
+            User user = userDao.authenticate( login, password ) ;
+            if( user != null ) {
+                //Оновлюємо дату останнього входу (lastLoginDT)
+                  userDao.UpdateLastLoginDT(user);
+
+                //генеруємо токен та повертаємо його у відповідь
+                WebToken webToken = webTokenDao.create(user);
+                responseData= new ResponseData( 200,webToken.toBase64() ) ;
             }
-
-
+            else {
+                responseData= new ResponseData( 401, "Unauthorized" ) ;
+            }
         }
         catch( Exception ex ) {
             logger.log( Level.SEVERE, ex.getMessage() ) ;
@@ -77,13 +96,8 @@ public class SignupServlet extends HttpServlet {
         GsonBuilder builder = new GsonBuilder();
         builder.setPrettyPrinting();
         Gson gson = builder.create();
-
-        resp.getWriter().print(
-                gson.toJson( responseData )
-        ) ;
-
+        resp.getWriter().print( gson.toJson( responseData ) ) ;
     }
-
 // upload settings
 
     @Override

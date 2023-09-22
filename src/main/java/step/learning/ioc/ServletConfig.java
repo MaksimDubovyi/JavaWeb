@@ -18,5 +18,6 @@ public class ServletConfig  extends ServletModule {
         serve("/hash").with(HashServlet.class);
         serve("/install").with(InstallServlet.class);
         serve("/signup").with(SignupServlet.class);
+        serve("/front").with(FrontServlet.class);
     }
 }

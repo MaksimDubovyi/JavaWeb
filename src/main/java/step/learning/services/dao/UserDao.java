@@ -119,7 +119,8 @@ public class UserDao {
      * @return UserDTO or null
      */
     public  User authenticate(String login, String password)
-    {//1. цукаємо користувача по логіну
+    {
+        //1. цукаємо користувача по логіну
         //2, вилучаємо сіль та пк
         //3. Генеруємо похідний ключ перевіряємо рівність збереженому пк
 
@@ -151,5 +152,21 @@ public class UserDao {
         }
         return  null;
 
+    }
+
+    public void UpdateLastLoginDT(User user )
+    {
+        String sql = "UPDATE " + dbPrefix +"Users SET `lastLoginDT` = CURRENT_TIMESTAMP " +
+                "WHERE `id` = '" + user.getId() + "'" ;
+        try( Statement statement = dbProvider.getConnection().createStatement() ) {
+            statement.executeUpdate( sql ) ;
+        }
+        catch( SQLException ex ) {
+            logger.log(
+                    Level.SEVERE,
+                    ex.getMessage() + "--" + sql
+            ) ;
+            throw new RuntimeException(ex);
+        }
     }
 }

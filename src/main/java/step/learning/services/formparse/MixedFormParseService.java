@@ -51,9 +51,10 @@ public class MixedFormParseService implements FormParseService {
         // готуємо колекції для результату
         Map<String, String>  fields = new HashMap<>() ;
         Map<String, FileItem> files = new HashMap<>() ;
+        boolean isMultipart = request.getHeader("Content-Type").startsWith("multipart/form-data");
 
         // розділяємо роботу в залежності від типу запиту (multipart/urlencoded)
-        if( ServletFileUpload.isMultipartContent( request ) ) {  // multipart
+        if( isMultipart ) {  // multipart
             try {
                 // розбираємо запит використовуючи створений у конструкторі парсер
                 for( FileItem fileItem : fileUpload.parseRequest( request ) ) {

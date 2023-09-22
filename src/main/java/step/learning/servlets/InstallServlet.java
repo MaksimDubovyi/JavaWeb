@@ -15,7 +15,9 @@ import java.util.UUID;
 
 
 import step.learning.services.dao.UserDao;
+import step.learning.services.dao.WebTokenDao;
 import step.learning.services.db.dto.User;
+import step.learning.services.db.dto.WebToken;
 import step.learning.services.kdf.KdfService;
 
 @Singleton
@@ -23,10 +25,13 @@ public class InstallServlet extends HttpServlet {
     @Inject
     private UserDao userDao;
 
+    @Inject
+    private WebTokenDao webTokenDao;
     private final KdfService kdfService;
 @Inject
-    public InstallServlet(KdfService kdfService) {
+    public InstallServlet(KdfService kdfService,WebTokenDao webTokenDao) {
         this.kdfService = kdfService;
+        this.webTokenDao = webTokenDao;
     }
 
     @Override
@@ -37,6 +42,7 @@ public class InstallServlet extends HttpServlet {
             req.setAttribute("pageName", "install" ) ;
             req.getRequestDispatcher( "WEB-INF/_layout.jsp" ).forward( req, resp ) ;
             userDao.install();
+            webTokenDao.install();
             resp.getWriter().print("Install Ok");
         }
         catch (RuntimeException ex)

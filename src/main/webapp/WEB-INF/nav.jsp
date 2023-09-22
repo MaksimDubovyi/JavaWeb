@@ -6,6 +6,9 @@
         <ul id="nav-mobile" class="right hide-on-med-and-down">
 
             <li <%if("jsp.jsp".equals(request.getParameter("_pageName"))) { %> class="myActive" <% }%>>
+                <a href="#front">Front</a></li>
+
+            <li <%if("jsp.jsp".equals(request.getParameter("_pageName"))) { %> class="myActive" <% }%>>
                 <a href="jsp">JSP</a></li>
 
             <li><a href="#">Components</a></li>
