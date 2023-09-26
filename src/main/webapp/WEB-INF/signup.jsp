@@ -169,11 +169,31 @@
         formData.append( phoneInput.name, phoneInput.value ) ;
         formData.append( birthdateInput.name, birthdateInput.value ) ;
         formData.append(avatarInput.name, avatarInput.files[0]);
+
         formData.append( cultureInput.name, cultureInput.value ) ;
         formData.append( genderInput.name, genderInput.value ) ;
 
     fetch(window.location.href,{method:'POST',body:formData})
     .then(r=>r.text())
         .then(console.log)
+
+        // let fileData = new FormData() ;
+        // fileData.append( 'upload', avatarInput.files[0] ) ;
+        // fetch( 'http://2760141.ji513362.web.hosting-test.net/', {
+        //     method: 'POST',
+        //     body: fileData
+        // }).then( r => {
+        //     if(r.status === 200) return r.text();
+        //     else console.error( r.text() ) ;
+        // } ).then( t => {
+        //     console.log(t);  // t - ім'я збереженого файлу
+        //     formData.append( 'avatar', t ) ;
+        //     /*
+        // fetch( window.location.href, {
+        //     method: 'POST',
+        //     body: formData
+        // }).then( r => r.json() ).then( console.log ) ;*/
+        // } ) ;
+
     }
 </script>

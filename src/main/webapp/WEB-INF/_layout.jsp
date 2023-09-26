@@ -117,18 +117,69 @@
 
   function loadFrontRage()
   {
-    const  token = window.localStorage.getItem('token');
+    //перевіряємо чи є тоекен у
+    const token = window.localStorage.getItem('token');
+    if(!token)
+    {//не автиризований режим
+      alert('Дана сторінка вимагає автентифікації')
+      window.location.href="<%=url3%>/";
+      return;
+    }
+    //намагаємось декодувати токен та визначити термін придатності
+    try{
+      var data=JSON.parse(atob(token))
+
+      let dateNow = Date.now(); // Поточна дата у мілісекундах
+      let dataExp = Date.parse(data.exp); // Перетворення строки у дату
+
+      console.log(dateNow + '\n' + dataExp+'\n'+data.exp);
+      if(dateNow>=dataExp)
+      {
+        alert('Токен не коректний повторіть автентифікацію!!! ')
+        window.location.href="<%=url3%>/";
+        return;
+      }
+
+    }
+    catch (ex)
+    {
+      alert('Токен не коректний повторіть автентифікацію ')
+      window.location.href="<%=url3%>/";
+      return;
+    }
+
     const  headers = (token==null)?{}:{
       'Authorization':`Bearer ${token}`
     }
     fetch('<%=url3%>/front',{
       method:'GET',
       headers:headers
-    }).then(r=>r.text())
-            .then(t=>{console.log(t)})
+    }).then(r=>r.json())
+            .then(j=>{
+              if(typeof j.login!='undefined')
+              {
+                const userAvatar=document.getElementById("user-avatar");
+                if(!userAvatar)throw "user-avatar not found";
+                if(j.avatar!=null&&j.avatar!="undefined")
+                {
+                  let i = j.avatar.lastIndexOf('\\');
+                  if(i>-1)
+                  {
+                    j.avatar=j.avatar.substring(i+1);
+                  }
+                }
+                else
+                {
+                  j.avatar="default.png"
+                }
+                userAvatar.innerHTML=`<img style="max-height:50px; border-radius:15px; margin-right:2%;" src="<%=url3%>/upload/${j.avatar}" />`
+
+              }
+              console.log(j)
+            })
   }
 
-  function loginClick() {
+   function loginClick() {
     const loginInput = document.getElementById('auth-login');
     if( ! loginInput ) throw "input id='auth-login' not found" ;
     const passwordInput = document.getElementById('auth-password');
@@ -168,6 +219,9 @@
               console.log(data);
               if(data.statusCode==200)
               {
+                //декодуємо токен, дізнаємось дати
+                let token = JSON.parse(atob(data.message))
+                alert('token expires'+ token.exp)
                 window.localStorage.setItem('token',data.message);
                 var instance = M.Modal.getInstance(document.getElementById("auth-modal"));
                 instance.close();

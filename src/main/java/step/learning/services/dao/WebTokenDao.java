@@ -94,7 +94,7 @@ public class WebTokenDao {
             try( Statement statement = dbProvider.getConnection().createStatement() ) {
                 statement.executeUpdate( sql ) ;
                 activeToken.setIat(new Date(activeToken.getIat().getTime()));
-                activeToken.setExp( new Date( new Date().getTime() + 24*60*60*1000 ) ) ;
+                activeToken.setExp( new Date( new Date().getTime() + 60000 ) ) ;//+ 24*60*60*1000
                 return activeToken ;
             }
             catch( SQLException ex ) {

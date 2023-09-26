@@ -1,5 +1,6 @@
 package step.learning.servlets;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import step.learning.services.dao.WebTokenDao;
@@ -53,11 +54,12 @@ public class FrontServlet extends HttpServlet {
              User user=webTokenDao.getSubject(webToken);
              if(user==null)
              {
-                 resp.getWriter().print("Invalid token "+ token);
+                 resp.getWriter().print("\"Invalid token" + token+"\"");
              }
-             resp.getWriter().print("Auth mode " +user.getFirstName());
+             resp.getWriter().print(//"Auth mode " +user.getFirstName());
+                     new Gson().toJson(user));
              return;
          }
-        resp.getWriter().print("Invalid authorization schema");
+        resp.getWriter().print("\"Invalid authorization schema\"");
     }
 }

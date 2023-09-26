@@ -25,6 +25,9 @@
             <li><a style="color: white" class="waves-effect waves-light btn modal-trigger leftLi" href="#auth-modal">
                 <span class="material-icons">login</span>
             </a></li>
+            <li id="user-avatar">
+
+            </li>
         </ul>
     </div>
 </nav>
