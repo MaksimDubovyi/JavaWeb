@@ -22,11 +22,16 @@
             <li <%if("security.jsp".equals(request.getParameter("_pageName"))) { %> class="myActive" <% }%>>
                 <a href="security">Security</a></li>
             <!-- Modal Trigger -->
+
+
+
+            <li <%if("email.jsp".equals(request.getParameter("_pageName"))) { %> class="myActive" <% }%>>
+                <a href="email">email</a></li>
+            <li id="user-avatar">
+
             <li><a style="color: white" class="waves-effect waves-light btn modal-trigger leftLi" href="#auth-modal">
                 <span class="material-icons">login</span>
             </a></li>
-            <li id="user-avatar">
-
             </li>
         </ul>
     </div>
