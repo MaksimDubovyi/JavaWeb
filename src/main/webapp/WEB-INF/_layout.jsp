@@ -45,6 +45,7 @@
 
   <div class="container">
     <jsp:include page="<%=pageName%>"/>
+    <div id="confirm-email"></div>
   </div>
 </div>
 
@@ -77,10 +78,10 @@
     <p id="result"  style="color: red"></p>
   </div>
   <div class="modal-footer">
-    <a href="<%= contextPath %>signup" class="modal-close waves-effect waves-green btn-flat teal lighten-3">Реєстрація</a>
-    <a href="#!" class="modal-close waves-effect waves-green btn-flat indigo lighten-3">Забув пароль</a>
-    <a href="#!" class="waves-effect waves-green btn-flat green lighten-3" id="submit">Вхід</a>
-
+    <a style="margin-right:10px;" href="<%= contextPath %>signup" class="modal-close waves-effect waves-green btn-flat teal lighten-3">Реєстрація</a>
+    <a style="margin-right:10px;" href="#!" class="modal-close waves-effect waves-green btn-flat indigo lighten-3 " >Забув пароль</a>
+    <a style="margin-right:10px;" href="#!" class="waves-effect waves-green btn-flat green lighten-3" id="submit">Вхід</a>
+    <a style="margin-right:100px;" href="#!" class="waves-effect waves-green btn-flat red lighten-3" id="exit">Вихід</a>
   </div>
 </div>
 <script>
@@ -89,6 +90,19 @@
     const elems = document.querySelectorAll('.modal');
     M.Modal.init(elems,
     {opacity:0.5});
+
+
+      const token = window.localStorage.getItem('token');
+      const submitBtn=document.getElementById("submit")
+      const exitBtn=document.getElementById("exit")
+      exitBtn.addEventListener( 'click', exitClick ) ;
+      if(token)
+        submitBtn.style.display="none";
+      else
+        exitBtn.style.display="none";
+
+
+
     const signupButton = document.getElementById('submit');
 
     if( signupButton ) {
@@ -100,7 +114,18 @@
 
     window.addEventListener('hashchange', frontRouter);
     frontRouter();
+
+
   });
+  function exitClick()
+  {
+    const submitBtn=document.getElementById("submit")
+    const exitBtn=document.getElementById("exit")
+    exitBtn.style.display="none";
+    submitBtn.style.display="block";
+    window.localStorage.clear();
+    window.location.href="<%=url3%>/";
+  }
   function  frontRouter(){
 
     console.log(location.hash)
@@ -159,6 +184,7 @@
               if(typeof j.login!='undefined')
               {
                 const userAvatar=document.getElementById("user-avatar");
+
                 if(!userAvatar)throw "user-avatar not found";
                 if(j.avatar!=null&&j.avatar!="undefined")
                 {
@@ -173,10 +199,37 @@
                   j.avatar="default.png"
                 }
                 userAvatar.innerHTML=`<img style="max-height:50px; border-radius:15px; margin-right:2%;" src="<%=url3%>/upload/${j.avatar}" />`
-
+// ---------------------- CONFIRM EMAIL --------------------------
+                if(typeof j.emailConfirmCode=='string'&& j.emailConfirmCode.length > 0 ) {  // є код -- пошта не підтверджена
+                  const confirmDiv = document.getElementById("confirm-email");
+                  if( ! confirmDiv ) throw "confirm-email not found" ;
+                  confirmDiv.innerHTML = `Ваша пошта не підтверджена, введіть код з е-листа
+    <div class="input-field inline"><input id='email-code'/></div><button onclick='confirmCodeClick()'>Підтвердити</button>` ;
+                  confirmDiv.style.border = "1px solid maroon" ;
+                  confirmDiv.style.padding = "5px 10px" ;
+                }
               }
               console.log(j)
             })
+  }
+  function confirmCodeClick() {
+    const emailCodeInput = document.getElementById("email-code");
+    if( ! emailCodeInput ) throw "email-code not found" ;
+    fetch('<%=url3%>/signup?code='+emailCodeInput.value,{
+      method:"PATCH",
+      headers:{ 'Authorization':`Bearer `+ window.localStorage.getItem('token')}
+    }).then(r=>{
+      if(r.status==202)
+      {
+        alert("Пошту підтверджено");
+        window.location.reload();//оновлюємо сторінку - має зникнути поле підтвердження
+      }
+      else
+      {
+        r.text().then(alert)//передаемо в alert результат r.text()
+      }
+    })
+    console.log( emailCodeInput.value ) ;
   }
 
    function loginClick() {
@@ -223,6 +276,12 @@
                 let token = JSON.parse(atob(data.message))
                 alert('token expires'+ token.exp)
                 window.localStorage.setItem('token',data.message);
+                const submitBtn=document.getElementById("submit")
+                const exitBtn=document.getElementById("exit")
+                exitBtn.style.display="block";
+                submitBtn.style.display="none";
+                loginInput.value="";
+                passwordInput.value="";
                 var instance = M.Modal.getInstance(document.getElementById("auth-modal"));
                 instance.close();
               }

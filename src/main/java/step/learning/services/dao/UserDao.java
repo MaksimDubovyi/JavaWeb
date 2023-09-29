@@ -115,35 +115,7 @@ public class UserDao {
             prep.setString(15, user.getPhoneConfirmCode());
 
             prep.executeUpdate();
-           //-------------Дз
-            Properties emailProperties = new Properties() ;
-            emailProperties.put( "mail.smtp.auth", "true" ) ;
-            emailProperties.put( "mail.smtp.starttls.enable", "true" ) ;
-            emailProperties.put( "mail.smtp.port", "587" ) ;
-            emailProperties.put( "mail.smtp.ssl.protocols", "TLSv1.2" ) ;
-            emailProperties.put( "mail.smtp.ssl.trust", "smtp.gmail.com" ) ;
 
-            javax.mail.Session mailSession = javax.mail.Session.getInstance( emailProperties ) ;
-            // mailSession.setDebug( true ) ;  // виводити у консоль процес надсилання пошти
-
-            try( Transport emailTransport = mailSession.getTransport("smtp") ) {
-                emailTransport.connect( "smtp.gmail.com", "girllittle257@gmail.com", "kopgatmtodpgflcb" ) ;
-                // Налаштовуємо повідомлення
-                javax.mail.internet.MimeMessage message = new MimeMessage( mailSession ) ;
-                message.setFrom( new javax.mail.internet.InternetAddress( "girllittle257@gmail.com" ) ) ;
-                message.setSubject( "From site JavaWeb" ) ;
-                //message.setContent( "Вітаємо з реєстраціє на сайті!", "text/plain; charset=UTF-8" ) ;
-                message.setContent( "<b>Вітаємо</b> з реєстраціє на <a href='https://javawebaa.azurewebsites.net'>сайті JavaWeb</a>! <p>Ваш код підтвердження</p>" +
-                        "<h2 style='color:red'>"+user.getEmailConfirmCode()+"</h2>", "text/html; charset=UTF-8" );
-
-                // Надсилаємо його
-                emailTransport.sendMessage( message,
-                        InternetAddress.parse( "maksim24du@gmail.com" ) ) ;
-
-            }
-                    catch( MessagingException ex ) {
-                        ex.getMessage();
-                    }
         }
         catch( SQLException ex ) {
             logger.log(
@@ -153,6 +125,27 @@ public class UserDao {
             throw new RuntimeException(ex);
         }
     }
+
+    public boolean confirmEmailCode( User user, String code ) {
+        if( user == null
+                || code == null
+                || ! code.equals( user.getEmailConfirmCode() )
+        ) {
+            return false ;
+        }
+        String sql = "UPDATE " + dbPrefix + "Users SET emailConfirmCode = NULL WHERE id = ?" ;
+        try( PreparedStatement prep = dbProvider.getConnection().prepareStatement(sql) ) {
+
+            prep.setString(1, user.getId().toString());
+            prep.executeUpdate();
+            return true;
+        }
+        catch( SQLException ex ) {
+            logger.log( Level.SEVERE,ex.getMessage() + "--" + sql ) ;
+            return false;
+        }
+    }
+
 
     /**
      * Authentication of user

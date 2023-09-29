@@ -1,6 +1,8 @@
 package step.learning.servlets;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import step.learning.services.email.EmailService;
 
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
@@ -11,26 +13,50 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.util.Properties;
 
 @Singleton
 public class MailServlet extends HttpServlet {
+    private final EmailService emailService;
+@Inject
+    public MailServlet(EmailService emailService) {
+        this.emailService = emailService;
+    }
+
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
        //метод викликається до того як відбувається розподіл за doXxxx методами,
         //тут є можливість вплинути на цей розподіл
         switch ((req.getMethod().toUpperCase()))
-        {case "MAIL": this.doMail(req,resp);
+        {
+            case "MAIL": this.doMail(req,resp);
             break;
             case "PATCH": this.doPatch(req,resp);
             break;
+            case "LINK": this.doLink(req,resp);
+                break;
             default:
                 super.service(req,resp);//розподіл за замовчуванням
         }
 
     }
 
-
+    protected void doLink(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        try {
+            Message message = emailService.prepareMessage() ;
+            message.setRecipients(  // Одержувачів також перекладаємо у повідомлення
+                    Message.RecipientType.TO,
+                    InternetAddress.parse( "maksim24du@gmail.com" ) ) ;
+                    message.setContent( "<b>Вітаємо</b> з реєстрацією на <a href='https://javawebaa.azurewebsites.net'> сайті JavaWeb </a>!",
+                    "text/html; charset=UTF-8" ) ;
+            emailService.send( message ) ;
+            resp.getWriter().print( "Service sent" ) ;
+        }
+        catch( Exception ex ) {
+            resp.getWriter().print( ex.getMessage() ) ;
+        }
+    }
     protected void doMail(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         Properties emailProperties = new Properties() ;
         emailProperties.put( "mail.smtp.auth", "true" ) ;
@@ -99,13 +125,14 @@ public class MailServlet extends HttpServlet {
             //файлова частина (attachment)
             String resurceName="car.jpg";
             //звертаємось до ресурсу у папці target/classes та визначаємо його шлях
-            String resurcePath=
-            this.getClass().getClassLoader().getResource(resurceName).getPath();
+            String resurcePath=this.getClass().getClassLoader().getResource(resurceName).getPath() ;
+            //якщо шлях до ресурсу містить спец символи то вони будуть URL-кодовані (пробіл -%20 і т.д.) Декодуємо їх
+                    try{resurcePath=URLDecoder.decode(resurcePath,"UTF-8");}
+                    catch (Exception ignored){}
 
             MimeBodyPart filePart = new MimeBodyPart();
             filePart.setDataHandler(new DataHandler(new FileDataSource(resurcePath)));
             filePart.setFileName(resurceName);
-
 
             //формуємо зібраний контент
             Multipart mailContent= new MimeMultipart();

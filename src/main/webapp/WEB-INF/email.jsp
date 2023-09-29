@@ -13,10 +13,14 @@
             Text
             <i class="material-icons right">send</i>
         </button>
-    </div>
-    <div class="col-s1">
+
         <button style="color: white" class="waves-effect waves-light btn black" onclick="htmlEmailClick()">
             HTML
+            <i class="material-icons right">send</i>
+        </button>
+
+        <button style="color: white" class="waves-effect waves-light btn black" onclick="serviceEmailClick()">
+            Service
             <i class="material-icons right">send</i>
         </button>
     </div>
@@ -62,6 +66,16 @@
     {
         fetch("<%=contextPath%>/email",{
             method:"PATCH"
+        }).then(r=>r.text())
+            .then(t=>
+            {
+                document.getElementById("email-result").innerText=t;
+            })
+    }
+    function serviceEmailClick()
+    {
+        fetch("<%=contextPath%>/email",{
+            method:"LINK"
         }).then(r=>r.text())
             .then(t=>
             {

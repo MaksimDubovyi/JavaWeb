@@ -1,5 +1,6 @@
 package step.learning.services.dao;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.name.Named;
 import step.learning.services.db.DbProvider;
@@ -7,10 +8,13 @@ import step.learning.services.db.dto.User;
 import step.learning.services.db.dto.WebToken;
 
 import java.sql.*;
+import java.text.ParseException;
 import java.util.Date;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class WebTokenDao {
     private final DbProvider dbProvider ;
@@ -137,7 +141,20 @@ public class WebTokenDao {
             }
         return null ;
     }
+    public User getSubject( String header )
+    {
 
+        String pattern = "Bearer (.+)$";
+        Pattern reges = Pattern.compile(pattern);
+        Matcher matches = reges.matcher(header);
+        if(matches.find()){
+            try{
+                return this.getSubject(new WebToken(matches.group(1)));
+            }
+            catch (ParseException ignored){ }
+        }
+        return null;
+    }
 
     public void install() {
         String createTableSQL = "CREATE TABLE IF NOT EXISTS " + dbPrefix +"WebTokens (" +
